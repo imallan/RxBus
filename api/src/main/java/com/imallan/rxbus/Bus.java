@@ -1,6 +1,6 @@
 package com.imallan.rxbus;
 
-import com.imallan.rxbus.annotation.Subscribe;
+import com.imallan.rxbus.annotation.RxBusSchedulers;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -21,7 +21,7 @@ public class Bus {
     private static Bus sBus;
 
     private PublishSubject mPublishSubject;
-    private Observable<BusEvent> mObservable;
+    private Observable mObservable;
     private ConcurrentMap<String, Object> mPersistEventMap;
     private ConcurrentMap<Object, CompositeSubscription> mCompositeSubscriptionMap;
 
@@ -46,37 +46,37 @@ public class Bus {
         return sBus;
     }
 
-    public <T extends BusEvent> void subscribe(
+    public <T> void subscribe(
             Object target,
             final Class<T> clazz,
-            Action1<BusEvent> action,
+            Action1<T> action,
             int schedulerInt) {
         Scheduler scheduler;
         switch (schedulerInt) {
-            case Subscribe.COMPUTATION:
+            case RxBusSchedulers.COMPUTATION:
                 scheduler = Schedulers.computation();
                 break;
-            case Subscribe.IMMEDIATE:
+            case RxBusSchedulers.IMMEDIATE:
                 scheduler = Schedulers.immediate();
                 break;
-            case Subscribe.IO:
+            case RxBusSchedulers.IO:
                 scheduler = Schedulers.io();
                 break;
-            case Subscribe.NEW_THREAD:
+            case RxBusSchedulers.NEW_THREAD:
                 scheduler = Schedulers.newThread();
                 break;
             default:
-            case Subscribe.ANDROID_MAIN:
+            case RxBusSchedulers.ANDROID_MAIN:
                 scheduler = AndroidSchedulers.mainThread();
                 break;
         }
         subscribeInternal(target, clazz, action, scheduler);
     }
 
-    private <T extends BusEvent> void subscribeInternal(
+    private <T> void subscribeInternal(
             Object target,
             final Class<T> clazz,
-            Action1<BusEvent> action,
+            Action1<T> action,
             Scheduler scheduler
     ) {
         CompositeSubscription compositeSubscription = mCompositeSubscriptionMap.get(target);
@@ -88,49 +88,49 @@ public class Bus {
         compositeSubscription.add(subscription);
     }
 
-    private <T extends BusEvent> Subscription subscribeInternal(
+    private <T> Subscription subscribeInternal(
             final Class<T> clazz,
-            Action1<BusEvent> action,
+            Action1<T> action,
             Scheduler scheduler
     ) {
         //noinspection unchecked
         Subscription subscription = mObservable
-                .filter(new Func1<BusEvent, Boolean>() {
+                .filter(new Func1<Object, Boolean>() {
                     @Override
-                    public Boolean call(BusEvent event) {
-                        return event.tag.equals(clazz.getName());
+                    public Boolean call(Object event) {
+                        return event.getClass().getCanonicalName().equals(clazz.getCanonicalName());
                     }
                 })
                 .observeOn(scheduler)
                 .subscribe(action);
-        if (mPersistEventMap.containsKey(clazz.getName())) {
+        if (mPersistEventMap.containsKey(clazz.getCanonicalName())) {
             //noinspection unchecked
-            action.call((BusEvent) mPersistEventMap.get(clazz.getName()));
+            action.call((T) mPersistEventMap.get(clazz.getCanonicalName()));
         }
         return subscription;
     }
 
-    public static <T extends BusEvent> void send(T t) {
+    public static <T> void send(T t) {
         getInstance().sendInternal(t);
     }
 
-    public static <T extends BusEvent> void sendPersist(T t) {
+    public static <T> void sendPersist(T t) {
         getInstance().sendPersistInternal(t);
     }
 
-    public static <T extends BusEvent> void removePersist(Class<T> clazz) {
+    public static <T> void removePersist(Class<T> clazz) {
         getInstance().mPersistEventMap.remove(clazz.getName());
     }
 
-    private <T extends BusEvent> void sendInternal(T t) {
+    private <T> void sendInternal(T t) {
         //noinspection unchecked
         mPublishSubject.onNext(t);
     }
 
-    private <T extends BusEvent> void sendPersistInternal(T t) {
+    private <T> void sendPersistInternal(T t) {
         //noinspection unchecked
         mPublishSubject.onNext(t);
-        mPersistEventMap.put(t.getClass().getName(), t);
+        mPersistEventMap.put(t.getClass().getCanonicalName(), t);
     }
 
     /**
@@ -155,26 +155,6 @@ public class Bus {
         CompositeSubscription subscription = mCompositeSubscriptionMap.get(target);
         if (subscription != null) subscription.clear();
         mCompositeSubscriptionMap.remove(target);
-    }
-
-    public static class BusEvent {
-
-        private Object obj;
-        private String tag;
-
-
-        public BusEvent(Object obj) {
-            this.obj = obj;
-            this.tag = getClass().getName();
-        }
-
-        public Object getObj() {
-            return obj;
-        }
-
-        public String getTag() {
-            return tag;
-        }
     }
 
 }

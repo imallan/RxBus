@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.imallan.rxbus.Bus;
+import com.imallan.rxbus.annotation.RxBusSchedulers;
 import com.imallan.rxbus.annotation.Subscribe;
 
 public class MainActivity extends AppCompatActivity {
@@ -41,14 +42,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Subscribe(scheduler = Subscribe.ANDROID_MAIN)
+    @Subscribe(scheduler = RxBusSchedulers.ANDROID_MAIN)
     public void setText(MyEvent ev) {
-        mTextView.setText(ev.getTag() + "|" + ev.getObj());
+        mTextView.setText(ev.tag);
     }
 
-    @Subscribe(scheduler = Subscribe.IMMEDIATE)
+    @Subscribe(scheduler = RxBusSchedulers.IMMEDIATE)
     public void logEvent(MyEvent ev) {
-        Log.d(TAG, "logEvent: " + ev.getTag() + "|" + ev.getObj());
+        Log.d(TAG, "logEvent: " + ev.tag);
     }
 
     @Override
@@ -57,10 +58,12 @@ public class MainActivity extends AppCompatActivity {
         Bus.unbind(this);
     }
 
-    static class MyEvent extends Bus.BusEvent {
+    static class MyEvent {
 
-        MyEvent(Object obj) {
-            super(obj);
+        public final String tag;
+
+        MyEvent(String tag) {
+            this.tag = tag;
         }
     }
 }

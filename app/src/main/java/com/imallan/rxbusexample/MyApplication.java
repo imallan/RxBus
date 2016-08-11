@@ -21,8 +21,8 @@ public class MyApplication extends Application {
                 .subscribe(new Action1<Long>() {
                     @Override
                     public void call(Long aLong) {
-                        Bus.send(new MainActivity.MyEvent(aLong));
-                        Bus.send(new MyView.ViewEvent(aLong));
+                        Bus.send(new MainActivity.MyEvent(aLong.toString()));
+                        Bus.send(new MyView.ViewEvent(aLong.toString()));
                     }
                 });
         Bus.sendPersist(new MainActivity.MyEvent("Starting"));

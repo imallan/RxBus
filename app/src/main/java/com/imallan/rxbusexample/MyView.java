@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import com.imallan.rxbus.Bus;
 import com.imallan.rxbus.annotation.Subscribe;
 
 public class MyView extends TextView {
@@ -23,7 +22,7 @@ public class MyView extends TextView {
 
     @Subscribe
     public void updateText(ViewEvent event) {
-        setText(event.getObj().toString());
+        setText(event.tag);
     }
 
     @Override
@@ -38,10 +37,12 @@ public class MyView extends TextView {
         MyView$BindUtils.unbind(this);
     }
 
-    static class ViewEvent extends Bus.BusEvent {
+    static class ViewEvent {
 
-        ViewEvent(Object obj) {
-            super(obj);
+        public final String tag;
+
+        ViewEvent(String tag) {
+            this.tag = tag;
         }
     }
 }
