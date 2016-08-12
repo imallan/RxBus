@@ -13,19 +13,25 @@ import rx.functions.Action1;
 public class MyApplication extends Application {
 
     private Subscription mSubscription;
+    private static Bus sBus;
+
+    public static Bus getBus() {
+        return sBus;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        sBus = Bus.create();
         mSubscription = Observable.interval(1, TimeUnit.SECONDS)
                 .subscribe(new Action1<Long>() {
                     @Override
                     public void call(Long aLong) {
-                        Bus.send(new MainActivity.MyEvent(aLong.toString()));
-                        Bus.send(new MyView.ViewEvent(aLong.toString()));
+                        sBus.send(new MainActivity.MyEvent(aLong.toString()));
+                        sBus.send(new MyView.ViewEvent(aLong.toString()));
                     }
                 });
-        Bus.sendPersist(new MainActivity.MyEvent("Starting"));
+        sBus.sendPersist(new MainActivity.MyEvent("Starting"));
     }
 
     @Override

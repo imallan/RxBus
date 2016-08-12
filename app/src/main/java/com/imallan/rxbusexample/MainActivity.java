@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.imallan.rxbus.Bus;
 import com.imallan.rxbus.annotation.RxBusSchedulers;
 import com.imallan.rxbus.annotation.Subscribe;
 
@@ -30,13 +29,13 @@ public class MainActivity extends AppCompatActivity {
         mButtonBind.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity$BindUtils.bind(MainActivity.this);
+                MainActivity$BindUtils.bind(MyApplication.getBus(), MainActivity.this);
             }
         });
         mButtonUnbind.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Bus.unbind(MainActivity.this);
+                MyApplication.getBus().unbind(MainActivity.this);
             }
         });
 
@@ -55,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Bus.unbind(this);
+        MainActivity$BindUtils.unbind(MyApplication.getBus(), MainActivity.this);
     }
 
     static class MyEvent {

@@ -28,13 +28,13 @@ public class MyView extends TextView {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        MyView$BindUtils.bind(this);
+        MyView$BindUtils.bind(MyApplication.getBus(), this);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        MyView$BindUtils.unbind(this);
+        MyView$BindUtils.unbind(MyApplication.getBus(), this);
     }
 
     static class ViewEvent {

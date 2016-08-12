@@ -18,8 +18,6 @@ import rx.subscriptions.CompositeSubscription;
 @SuppressWarnings("unused")
 public class Bus {
 
-    private static Bus sBus;
-
     private PublishSubject mPublishSubject;
     private Observable mObservable;
     private ConcurrentMap<String, Object> mPersistEventMap;
@@ -35,15 +33,8 @@ public class Bus {
 //                .observeOn(AndroidSchedulers.mainThread());
     }
 
-    public static Bus getInstance() {
-        synchronized (Bus.class) {
-            if (sBus == null) {
-                synchronized (Bus.class) {
-                    sBus = new Bus();
-                }
-            }
-        }
-        return sBus;
+    public static Bus create() {
+        return new Bus();
     }
 
     public <T> void subscribe(
@@ -110,16 +101,16 @@ public class Bus {
         return subscription;
     }
 
-    public static <T> void send(T t) {
-        getInstance().sendInternal(t);
+    public <T> void send(T t) {
+        sendInternal(t);
     }
 
-    public static <T> void sendPersist(T t) {
-        getInstance().sendPersistInternal(t);
+    public <T> void sendPersist(T t) {
+        sendPersistInternal(t);
     }
 
-    public static <T> void removePersist(Class<T> clazz) {
-        getInstance().mPersistEventMap.remove(clazz.getName());
+    public <T> void removePersist(Class<T> clazz) {
+        mPersistEventMap.remove(clazz.getName());
     }
 
     private <T> void sendInternal(T t) {
@@ -147,8 +138,8 @@ public class Bus {
         }
     }
 
-    public static void unbind(Object target) {
-        getInstance().unbindInternal(target);
+    public void unbind(Object target) {
+        unbindInternal(target);
     }
 
     private void unbindInternal(Object target) {
